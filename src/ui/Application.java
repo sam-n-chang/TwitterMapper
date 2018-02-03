@@ -7,6 +7,7 @@ import org.openstreetmap.gui.jmapviewer.interfaces.ICoordinate;
 import org.openstreetmap.gui.jmapviewer.interfaces.MapMarker;
 import org.openstreetmap.gui.jmapviewer.tilesources.BingAerialTileSource;
 import query.Query;
+import twitter.LiveTwitterSource;
 import twitter.PlaybackTwitterSource;
 import twitter.TwitterSource;
 import util.SphericalGeometry;
@@ -35,13 +36,13 @@ public class Application extends JFrame {
 
     private void initialize() {
         // To use the live twitter stream, use the following line
-        // twitterSource = new LiveTwitterSource();
+        twitterSource = new LiveTwitterSource();
 
         // To use the recorded twitter stream, use the following line
         // The number passed to the constructor is a speedup value:
         //  1.0 - play back at the recorded speed
         //  2.0 - play back twice as fast
-        twitterSource = new PlaybackTwitterSource(60.0);
+        //twitterSource = new PlaybackTwitterSource(2.0);
 
         queries = new ArrayList<>();
     }
@@ -55,7 +56,8 @@ public class Application extends JFrame {
         Set<String> allterms = getQueryTerms();
         twitterSource.setFilterTerms(allterms);
         contentPanel.addQuery(query);
-        // TODO: This is the place where you should connect the new query to the twitter source
+        // connect the new query (Observer) to the twitter source (Observable)
+        twitterSource.addObserver(query);
     }
 
     /**
@@ -121,8 +123,36 @@ public class Application extends JFrame {
             public void mouseMoved(MouseEvent e) {
                 Point p = e.getPoint();
                 ICoordinate pos = map().getPosition(p);
-                // TODO: Use the following method to set the text that appears at the mouse cursor
-                map().setToolTipText("This is a tooltip");
+                // set the text that appears at the mouse cursor
+                // map().setToolTipText("This is a tooltip");
+
+                //retrieve marks within the mouse covering
+                List<MapMarker> markerList = getMarkersCovering (pos, pixelWidth(p));
+
+                //if the markerList is null then we'll just reset the previous tooltip text leftover
+                if (markerList.isEmpty()) {
+                    map().setToolTipText(null);
+                }
+
+                //display tooltipText for all marks found
+                for (MapMarker m : markerList) {
+                    MapMarkerEnhanced iconMarker = (MapMarkerEnhanced) m;
+                    final String html =
+                            "<html><body>" +
+                                    "<p align=middle> " +
+                                    iconMarker.toString() +
+                                    "<img src='" +
+                                    iconMarker.getIconUrl() +
+                                    "'width=50 height=50 border-radius=50%> " ;
+                    map().setToolTipText(html);
+                    /*
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            map().setToolTipText(html);
+                        }
+                    });
+                    */
+                }
             }
         });
     }
@@ -188,7 +218,9 @@ public class Application extends JFrame {
 
     // A query has been deleted, remove all traces of it
     public void terminateQuery(Query query) {
-        // TODO: This is the place where you should disconnect the expiring query from the twitter source
+        // disconnect the expiring query from the twitter source
+        twitterSource.deleteObserver(query);
+
         queries.remove(query);
         Set<String> allterms = getQueryTerms();
         twitterSource.setFilterTerms(allterms);

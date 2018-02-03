@@ -15,6 +15,7 @@ public class BasicFilter implements Filter {
 
     public BasicFilter(String word) {
         this.word = word;
+        // (?i)   match case insensitive
         pattern = Pattern.compile("(?i).*" + Pattern.quote(word) + ".*");
     }
 

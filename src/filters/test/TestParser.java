@@ -17,6 +17,18 @@ public class TestParser {
     }
 
     @Test
+    public void testSimple() throws SyntaxError {
+        Filter x = new Parser("dogs and not cat").parse();
+        assertTrue(x.toString().equals("(dogs and not cat)"));
+    }
+
+    @Test
+    public void testComposite() throws SyntaxError {
+        Filter x = new Parser("dogs and not cat or cats or not dog and not cat").parse();
+        assertTrue(x.toString().equals("(((dogs and not cat) or cats) or (not dog and not cat))"));
+    }
+
+    @Test
     public void testHairy() throws SyntaxError {
         Filter x = new Parser("trump and (evil or blue) and red or green and not not purple").parse();
         assertTrue(x.toString().equals("(((trump and (evil or blue)) and red) or (green and not not purple))"));

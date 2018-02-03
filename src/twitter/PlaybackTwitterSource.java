@@ -15,7 +15,7 @@ public class PlaybackTwitterSource extends TwitterSource {
     // The speedup to apply to the recorded stream of tweets; 2 means play at twice the rate
     // at which the tweets were recorded
     private final double speedup;
-    private ObjectSource source = new ObjectSource("data/TwitterCapture.jobj");
+    private ObjectSource source = new ObjectSource("TwitterMapperStarter/data/TwitterCapture.jobj");
     private boolean threadStarted = false;
 
     public PlaybackTwitterSource(double speedup) {
@@ -69,7 +69,7 @@ public class PlaybackTwitterSource extends TwitterSource {
     }
 
     /**
-     * The playback source merely starts the playback thread, it it hasn't been started already
+     * The playback source merely starts the playback thread, if it hasn't been started already
      */
     protected void sync() {
         System.out.println("Starting playback thread with " + terms);
